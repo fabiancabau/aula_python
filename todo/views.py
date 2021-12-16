@@ -27,9 +27,20 @@ class TodoView(APIView):
         )
 
         serialized_item = TodoItemSerializer(item).data
-        return Response(serialized_item)
+        return Response(serialized_item, status=status.HTTP_201_CREATED)
 
 class TodoDetailView(APIView):
+
+    def get(self, request, todo_item_id: int):
+        try:
+            todo_item = TodoItem.objects.get(id=todo_item_id)
+            serialized_item = TodoItemSerializer(todo_item).data
+            return Response(serialized_item)
+        except TodoItem.DoesNotExist:
+            return Response({"message": "Item does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            return Response({"message": "Error"}, status=status.HTTP_400_BAD_REQUEST)
+
 
     def delete(self, request, todo_item_id: int) -> Response:
 
