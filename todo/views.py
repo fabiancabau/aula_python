@@ -1,5 +1,6 @@
 import traceback
 
+from django.db import IntegrityError
 from django.shortcuts import render
 
 # Create your views here.
@@ -21,13 +22,16 @@ class TodoView(APIView):
         return Response(serialized_items, status=status.HTTP_200_OK)
 
     def post(self, request):
-        item = TodoItem.objects.create(
-            description=request.data.get("description"),
-            color=request.data.get("color", "branco")
-        )
+        try:
+            item = TodoItem.objects.create(
+                description=request.data.get("description"),
+                color=request.data.get("color", "branco")
+            )
 
-        serialized_item = TodoItemSerializer(item).data
-        return Response(serialized_item, status=status.HTTP_201_CREATED)
+            serialized_item = TodoItemSerializer(item).data
+            return Response(serialized_item, status=status.HTTP_201_CREATED)
+        except IntegrityError:
+            return Response({"message": "Error"}, status=status.HTTP_400_BAD_REQUEST)
 
 class TodoDetailView(APIView):
 

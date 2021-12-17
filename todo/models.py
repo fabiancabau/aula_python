@@ -5,7 +5,7 @@ from django.db import models
 
 class TodoItem(models.Model):
 
-    description = models.TextField()
+    description = models.TextField(null=False)
     is_done = models.BooleanField(default=False)
     created_dt = models.DateTimeField(auto_now_add=True)
     color = models.CharField(max_length=250, null=True)

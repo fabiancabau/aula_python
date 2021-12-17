@@ -1,10 +1,10 @@
 from django.test import TestCase, Client, client
-import json
 from ..serializers import TodoItemSerializer
 from ..models import TodoItem
 from rest_framework import status
 
 client = Client()
+
 
 class GetAllTodosTest(TestCase):
 
@@ -29,7 +29,6 @@ class CreateNewTodo(TestCase):
             'color': 'blue'
         }
         self.invalid_payload = {
-            'description': "",
             'color': 'blue'
         }
 
@@ -39,20 +38,59 @@ class CreateNewTodo(TestCase):
 
     def test_create_invalid_todo(self):
         response = client.post('/todo', self.invalid_payload)
-        self.assertEqual((response.status_code, status.HTTP_400_BAD_REQUEST))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-"""class GetSingleTodoTest(TestCase):
+class GetSingleTodoTest(TestCase):
 
     def setUp(self):
         self.todo1 = TodoItem.objects.create(description='Todo 1', color='black')
         self.todo2 = TodoItem.objects.create(description='Todo 2', color='white')
         self.todo3 = TodoItem.objects.create(description='Todo 3', color='blue')
 
+        self.valid_payload = {
+            'id': 2,
+            'description': 'Todo 2',
+            'color': 'white',
+            'is_done': False
+        }
+
     def test_get_valid_single_todo(self):
-        response = client.get(f'/todo/{self.todo2.todo_item_id}')
-        todo = TodoItem.objects.get(pk=self.todo2.todo_item_id)
-        serializer = TodoItemSerializer(todo)
-        self.assertEqual(response.data, serializer.data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)"""
+        response = client.get('/todo/2')
+        del response.data['created_dt']
+        self.assertEqual(response.data, self.valid_payload)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class DeleteSingleTodoTest(TestCase):
+    def setUp(self):
+        self.todo1 = TodoItem.objects.create(description='Todo 1', color='black')
+
+    def test_delete_single_todo(self):
+        response = client.delete('/todo/1')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {"message": "Item removed successfully"})
+
+
+class PutSingleTodoTest(TestCase):
+    def setUp(self):
+        self.todo1 = TodoItem.objects.create(description='Todo 1', color='black')
+
+    def test_put_single_todo(self):
+        response = client.patch('/todo/1', {
+            'description': 'New Todo',
+            'color': 'blue'
+        }, content_type='application/json')
+        valid_response = {
+            'id': 1,
+            'description': 'New Todo',
+            'color': 'blue',
+            'is_done': False
+        }
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        del response.data['created_dt']
+        self.assertEqual(response.data, valid_response)
+
+
+
 
